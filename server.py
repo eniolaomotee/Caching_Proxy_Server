@@ -32,9 +32,10 @@ async def handle_requests(request:Request, full_path:str):
     global origin_url
     
     method = request.method
-    logger.info("The method is %s", method)
+    logger.info("The method for the request sent is %s", method)
     query_string = str(request.url.query)
     path = f"{full_path}?{query_string}" if query_string else full_path
+    logger.debug("This is the full Path %s", full_path)
     url = f"{origin_url}/{path}"
     
     
@@ -50,7 +51,7 @@ async def handle_requests(request:Request, full_path:str):
             headers={**cached_response["headers"], "X-cache": "HIT"}
         )
         
-    # Forward to origin
+    # Forward to origin if not cached
     async with httpx.AsyncClient(follow_redirects=False) as client:
         forwarded_response = await client.request(
             method=method,
@@ -72,9 +73,10 @@ async def handle_requests(request:Request, full_path:str):
                 content = redirected_response.content
                 status_code = redirected_response.status_code
                 headers = dict(redirected_response.headers)
+                
     # Rewrite Location header if it's a redirect
     if "location" in headers and headers["location"].startswith(origin_url):
-        headers["location"] = headers["location"].replace(origin_url, f"http://localhost:3001")
+        headers["location"] = headers["location"].replace(origin_url, "http://localhost:3001")
     
     # Cache response only if it's not a redirect (optional)
     if not (300 <= status_code < 400):
