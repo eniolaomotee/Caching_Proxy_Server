@@ -1,4 +1,3 @@
-# Caching Proxy Server
 
 # Caching Proxy Server
 A CLI-powered HTTP caching proxy server built with FastAPI and httpx.
